@@ -1,14 +1,14 @@
 # IPython log file
-
-import json
+# procesing code of Dark skies app in the Cities at Night project
+# Version 0.1 by Alejandro Sanchez de Miguel
+# licence GNU GPL3
+import json,os,linecache
 import asciitable
 import numpy as np
-preguntas="darkskies_task_22_08_2014.json"
-respuestas="darkskies_task_run_22_08_2014.json"
-datos=open(respuestas, 'r').read()
-resp=json.loads(datos)
-datos1=open(preguntas, 'r').read()
-pre=json.loads(datos1)
+
+
+###Function to give a cloud value to the Cloudy strings and give the median and mean of the values.
+
 def get_cloudy(g):
     k=[]
     for x in g:
@@ -25,7 +25,8 @@ def get_cloudy(g):
     gmean=np.mean(k)
     gmedian=np.median(k)
     return gmean,gmedian,k
-     
+
+###Function to give a sharp value to the Sharpnes strings and give the median and mean of the values. 
 def get_sharp(g):
     k=[]
     for x in g:
@@ -43,22 +44,22 @@ def get_sharp(g):
     gmedian=np.median(k)
     return gmean,gmedian,k
     
-    
+###Function to give a class value to the class strings and give the median and mean of the values.     
 def get_class(g):
     k=[]
     for x in g:
      if x['info']['classification']=='city':
-         k.append(0)
+         k.append(0)#Main goal
      elif x['info']['classification']=='stars':
-         k.append(1)
+         k.append(1)#Secondary goal
      elif x['info']['classification']=='black':
-         k.append(-1)
+         k.append(-1)# third goal 
      elif x['info']['classification']=='aurora':
-         k.append(-3)
+         k.append(-3)#Curius 
      elif x['info']['classification']=='astronaut':
-         k.append(-6)
+         k.append(-6)#Curius
      elif x['info']['classification']=='None':
-         k.append(-19)
+         k.append(-19)#Clouds, sunsets, or others
      elif x['info']['classification']=='404':
          k.append(-20)
      elif x['info']['classification']=='unknown':
@@ -69,70 +70,135 @@ def get_class(g):
     gmedian=np.median(k)
     return gmean,gmedian,k
 
+##### Download the last results
+if 1:
+    url2="\"http://crowdcrafting.org/project/darkskies/tasks/export?type=task_run&format=json\""
+    os.system('rm result.zip')
+    os.system('wget -T 10 '+url2)
+    os.system('mv export\?type\=task_run\&format\=json result.zip')
+    os.system('unzip -o result.zip')
+    url2="\"http://crowdcrafting.org/project/darkskies/tasks/export?type=task&format=json\""
+    os.system('rm result.zip')
+    os.system('wget -T 10 '+url2)
+    os.system('mv export\?type\=task\&format\=json result.zip')
+    os.system('unzip -o result.zip')
+questions="darkskies_task.json"
+answers="darkskies_task_run.json"
+
+#questions="darkskies_task_23_08_2014.json" #### Here I put the static names once they are downloaded.
+#answers="darkskies_task_run_23_08_2014.json"
+
+###### Read the values
+datos1=open(questions, 'r').read()
+que=json.loads(datos1)
+nque=len(que)
+nque=nque-1
+
+#### This part save the results on a file to try save RAM
+os.system('rm questions.txt')
+thefile = open('questions.txt', 'w')
+for item in que:
+    thefile.write("%s\n" % item)
+
+thefile.close()
+
+del que
+del datos1
+################################################################
+
+###### way of reading from the file.
+def que(x):
+        line=dict(eval(linecache.getline('questions.txt',x+1).split('\n')[0]))
+        return line
+####I use the ID and ID_NASA as main control of the tasks
 ID=[]
 ID_NASA=[]     
-for x in range(len(pre)):
-         ID.append(pre[x]['id'])
-         ID_NASA.append(pre[x]['info']['idiss'])
-         
+for x in range(nque):
+         ID.append(que(x)['id'])
+         ID_NASA.append(que(x)['info']['idiss'])
 
-resp_clas=range(len(pre))
-clas_all=range(len(pre))    
-sharp_all=range(len(pre))    
-cloudy_all=range(len(pre))
-clas_mean=range(len(pre))    
-sharp_mean=range(len(pre))    
-cloudy_mean=range(len(pre))
-clas_med=range(len(pre))    
-sharp_med=range(len(pre))    
-cloudy_med=range(len(pre))
+############### This part save the results on a file to try save RAM
+datos=open(answers, 'r').read()
+answ=json.loads(datos)
+nres=len(answ)
+nres=nres-1
+thefile = open('answers.txt', 'w')
+for item in answ:
+    thefile.write("%s\n" % item)
 
-clas_med3=range(len(pre))
-clas_med5=range(len(pre))
-clas_med10=range(len(pre))
-clas_med15=range(len(pre))
-clas_med20=range(len(pre))
-clas_med25=range(len(pre))
+thefile.close()
 
-sharp_med3=range(len(pre))
-sharp_med5=range(len(pre))
-sharp_mean5=range(len(pre))
-sharp_med10=range(len(pre))
-sharp_med15=range(len(pre))
-sharp_med20=range(len(pre))
-sharp_med25=range(len(pre))
+del answ
+del datos
 
-cloudy_med3=range(len(pre))
-cloudy_med5=range(len(pre))
-cloudy_mean5=range(len(pre))
-cloudy_med10=range(len(pre))
-cloudy_med15=range(len(pre))
-cloudy_med20=range(len(pre))
-cloudy_med25=range(len(pre))
+def answ(x):
+    line=dict(eval(linecache.getline('answers.txt',x+1)[:-1]))
+    return line    
 
-lenclas=range(len(pre))
-lencloudy=range(len(pre))
-lensharp=range(len(pre))
+
+# I create the arrays of to get the ansers to each questions(all data)
+answ_clas=range(nque)
+clas_all=range(nque)    
+sharp_all=range(nque)    
+cloudy_all=range(nque)
+clas_mean=range(nque)    
+sharp_mean=range(nque)    
+cloudy_mean=range(nque)
+clas_med=range(nque)    
+sharp_med=range(nque)    
+cloudy_med=range(nque)
+
+# I create the arrays of to get the ansers to each questions when you only have the first X anserws
+clas_med3=range(nque)
+clas_med5=range(nque)
+clas_med10=range(nque)
+clas_med15=range(nque)
+clas_med20=range(nque)
+clas_med25=range(nque)
+
+sharp_med3=range(nque)
+sharp_med5=range(nque)
+sharp_mean5=range(nque)
+sharp_med10=range(nque)
+sharp_med15=range(nque)
+sharp_med20=range(nque)
+sharp_med25=range(nque)
+
+cloudy_med3=range(nque)
+cloudy_med5=range(nque)
+cloudy_mean5=range(nque)
+cloudy_med10=range(nque)
+cloudy_med15=range(nque)
+cloudy_med20=range(nque)
+cloudy_med25=range(nque)
+
+#place to save how many answers has each question
+lenclas=range(nque)
+lencloudy=range(nque)
+lensharp=range(nque)
   
-for x in range(len(pre)):
-    resp_clas[x]=[]
-       
-for x in range(len(resp)):
-    id=ID.index(resp[x]['task_id'])
-    resp_clas[id].append(resp[x])
+#Transfor the array into a array of lists
+for x in range(nque):
+    answ_clas[x]=[]
+
+for x in range(nres):#Here I clasify the answsers in theirs questions
+    id=ID.index(answ(x)['task_id']) #Here I save the 'task_id' positions on the array       
+    answ_clas[id].append(answ(x)) #Add the anserw to the class array
     
-for x in range(len(resp_clas)):
-    (clas_mean[x],clas_med[x],clas_all[x])=get_class(resp_clas[x])
-    (cloudy_mean[x],cloudy_med[x],cloudy_all[x])=get_cloudy(resp_clas[x])
-    (sharp_mean[x],sharp_med[x],sharp_all[x])=get_sharp(resp_clas[x])
+for x in range(len(answ_clas)): #Here I process the answsers to the questions
+    (clas_mean[x],clas_med[x],clas_all[x])=get_class(answ_clas[x])#process class
+    (cloudy_mean[x],cloudy_med[x],cloudy_all[x])=get_cloudy(answ_clas[x])#process clouds
+    (sharp_mean[x],sharp_med[x],sharp_all[x])=get_sharp(answ_clas[x])#process sharp
     lenclas[x]=len(clas_all[x])
     lencloudy[x]=len(cloudy_all[x])
     lensharp[x]=len(sharp_all[x])
 
-lenclas=np.array(lenclas)
-lencloudy=np.array(lencloudy)
-lensharp=np.array(lensharp)
-lenclas5=lenclas>10
+lenclas=np.array(lenclas)#transform list into array
+lencloudy=np.array(lencloudy)#transform list into array
+lensharp=np.array(lensharp)#transform list into array
+
+#### Create mask for which questions has X answsers
+lenclas5=lenclas>5
 lenclas10=lenclas>10
 lenclas15=lenclas>15
 lenclas20=lenclas>20
@@ -146,14 +212,14 @@ lencloudy20=lencloudy>20
 lencloudy25=lencloudy>25
 lencloudy29=lencloudy>29
 
-lensharp5=lensharp>10
+lensharp5=lensharp>5
 lensharp10=lensharp>10
 lensharp15=lensharp>15
 lensharp20=lensharp>20
 lensharp25=lensharp>25
 lensharp29=lensharp>29
-
-for x in range(len(resp_clas)):
+#proccess ### Questions with diferent amoung of answsers
+for x in range(len(answ_clas)):
 
     clas_med3[x]=np.median(clas_all[x][:3])    
     clas_med5[x]=np.median(clas_all[x][:5])
@@ -175,6 +241,8 @@ for x in range(len(resp_clas)):
     sharp_med15[x]=np.median(sharp_all[x][:15])
     sharp_med20[x]=np.median(sharp_all[x][:20])
     sharp_med25[x]=np.median(sharp_all[x][:25])
+
+###### Calculate the succses rate
 
 clas_dif3=np.array(clas_med3)[lenclas5]-np.array(clas_med)[lenclas5]
 clas_dif5=np.array(clas_med5)[lenclas10]-np.array(clas_med)[lenclas10]
@@ -225,6 +293,9 @@ dif_sharp15=float(sum(sharp_dif15!=0))/sum(sharp_dif15==0)*100
 dif_sharp20=float(sum(sharp_dif20!=0))/sum(sharp_dif20==0)*100
 dif_sharp25=float(sum(sharp_dif25!=0))/sum(sharp_dif25==0)*100
 
+
+############### Create masks for each class
+
 mask_stars=np.array(clas_med25)==1
 mask_city=np.array(clas_med25)==0
 mask_black=np.array(clas_med25)==-1
@@ -234,10 +305,11 @@ mask_None=np.array(clas_med25)==-19
 mask_404=np.array(clas_med25)==-20
 mask_unknown=np.array(clas_med25)==-21
 
+#Setection criteria for theblurry or too cloudy cities
 fewclouds=np.array(cloudy_mean5)>0.7
 sharpmask=np.array(sharp_mean5)>0.3
 
-
+#Write files with ID's of images per class
 
 stars=np.array(ID_NASA)[mask_stars]
 stars=list(stars)
@@ -247,18 +319,19 @@ f.close()
 
 maskS1=mask_stars*fewclouds*sharpmask
 
+# better Stars
 stars=np.array(ID_NASA)[maskS1]
 stars=list(stars)
 f = open('stars1.txt', 'w')
 f.write("\n".join(stars))
 f.close()
-
+#all auroras
 aurora=np.array(ID_NASA)[mask_aurora]
 aurora=list(aurora)
 f = open('aurora.txt', 'w')
 f.write("\n".join(aurora))
 f.close()
-
+#all cities
 city=np.array(ID_NASA)[mask_city]
 city=list(city)
 f = open('city.txt', 'w')
@@ -266,38 +339,38 @@ f.write("\n".join(city))
 f.close()
 
 maskC1=mask_city*fewclouds*sharpmask
-
+# better Cities
 city1=np.array(ID_NASA)[maskC1]
 city1=list(city1)
 f = open('city1.txt', 'w')
 f.write("\n".join(city1))
 f.close()
 
-
+#all black
 black=np.array(ID_NASA)[mask_black]
 black=list(black)
 f = open('black.txt', 'w')
 f.write("\n".join(black))
 f.close()
-
+#all astronaut
 astronaut=np.array(ID_NASA)[mask_astronaut]
 astronaut=list(astronaut)
 f = open('astronaut.txt', 'w')
 f.write("\n".join(astronaut))
 f.close()
-
+#all none
 none=np.array(ID_NASA)[mask_None]
 none=list(none)
 f = open('none.txt', 'w')
 f.write("\n".join(none))
 f.close()
-
+#all 404
 n404=np.array(ID_NASA)[mask_404]
 n404=list(n404)
 f = open('404.txt', 'w')
 f.write("\n".join(n404))
 f.close()
-
+#all unknown
 unknown=np.array(ID_NASA)[mask_unknown]
 unknown=list(unknown)
 f = open('unknown.txt', 'w')
